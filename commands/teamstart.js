@@ -38,7 +38,8 @@ module.exports = {
             mode: mode,
             teams: [],
             oni: null,
-            teamSize: 4 // 均等分割用のデフォルトサイズ
+            teamSize: 4, // 均等分割用のデフォルトサイズ
+            oniCandidates: [] // 鬼候補者リスト
         };
 
         // モードに応じて初期チーム構成を設定
@@ -82,6 +83,19 @@ function createEmbed(sessionData) {
             name: "📊 設定", 
             value: `${groupCount}グループ作成可能\n余り: ${remainingMembers}人` 
         });
+
+        // 鬼候補者を表示
+        if (sessionData.oniCandidates && sessionData.oniCandidates.length > 0) {
+            embed.addFields({ 
+                name: "👹 鬼候補者", 
+                value: createMembersList(sessionData.oniCandidates) 
+            });
+        } else {
+            embed.addFields({ 
+                name: "👹 鬼候補者", 
+                value: "未設定" 
+            });
+        }
 
         // 各グループを表示
         for (let i = 0; i < sessionData.teams.length; i++) {

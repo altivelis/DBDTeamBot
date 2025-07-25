@@ -2,8 +2,12 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("randomoni")
-        .setDescription("全グループにランダムに鬼を配置（鬼ごっこモード専用）"),
+        .setName("removeoni")
+        .setDescription("鬼候補者から削除（鬼ごっこモード専用）")
+        .addUserOption(option =>
+            option.setName('user')
+                .setDescription('鬼候補者から削除するユーザー')
+                .setRequired(true)),
     async execute(interaction) {
         if (interaction.channel.status != 1) {
             await interaction.reply({ content: "チーム分けセッションが開始されていません", ephemeral: true });
@@ -17,98 +21,29 @@ module.exports = {
             return;
         }
 
-        if (sessionData.members.length < 5) {
-            await interaction.reply({ content: "最低5人必要です（1グループあたり5人）", ephemeral: true });
-            return;
-        }
-
+        const targetUser = interaction.options.getUser('user');
+        const targetMember = interaction.guild.members.cache.get(targetUser.id);
+        
         // 鬼候補者リストが存在しない場合は初期化
         if (!sessionData.oniCandidates) {
             sessionData.oniCandidates = [];
         }
 
-        const requiredOniCount = sessionData.teams.length; // 必要な鬼の数
-        const candidateCount = sessionData.oniCandidates.length;
-
-        let selectedOnis = [];
-        let remainingMembers = [...sessionData.members];
-
-        if (candidateCount < requiredOniCount) {
-            // 鬼候補者 < 必要な鬼の数: 鬼候補者全員を鬼に、不足分は残りからランダム選択
-            selectedOnis = [...sessionData.oniCandidates];
-            
-            // 鬼候補者を残りメンバーから除外
-            remainingMembers = sessionData.members.filter(member => 
-                !sessionData.oniCandidates.some(candidate => candidate.id === member.id)
-            );
-            
-            // 不足分をランダム選択
-            const shortage = requiredOniCount - candidateCount;
-            for (let i = 0; i < shortage; i++) {
-                if (remainingMembers.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * remainingMembers.length);
-                    selectedOnis.push(remainingMembers.splice(randomIndex, 1)[0]);
-                }
-            }
-        } else if (candidateCount === requiredOniCount) {
-            // 鬼候補者 = 必要な鬼の数: 鬼候補者全員を鬼に
-            selectedOnis = [...sessionData.oniCandidates];
-            
-            // 鬼候補者を残りメンバーから除外
-            remainingMembers = sessionData.members.filter(member => 
-                !sessionData.oniCandidates.some(candidate => candidate.id === member.id)
-            );
-        } else {
-            // 鬼候補者 > 必要な鬼の数: 鬼候補者からランダム選択
-            const shuffledCandidates = [...sessionData.oniCandidates];
-            for (let i = shuffledCandidates.length - 1; i >= 0; i--) {
-                const rand = Math.floor(Math.random() * (i + 1));
-                [shuffledCandidates[i], shuffledCandidates[rand]] = [shuffledCandidates[rand], shuffledCandidates[i]];
-            }
-            
-            selectedOnis = shuffledCandidates.slice(0, requiredOniCount);
-            
-            // 選ばれなかった鬼候補者も残りメンバーに含める
-            const unselectedCandidates = shuffledCandidates.slice(requiredOniCount);
-            remainingMembers = sessionData.members.filter(member => 
-                !selectedOnis.some(oni => oni.id === member.id)
-            );
+        // 鬼候補者に含まれているかチェック
+        const candidateIndex = sessionData.oniCandidates.findIndex(member => member.id === targetUser.id);
+        if (candidateIndex === -1) {
+            await interaction.reply({ content: "このユーザーは鬼候補者に含まれていません", ephemeral: true });
+            return;
         }
 
-        // 残りメンバーをシャッフル
-        for (let i = remainingMembers.length - 1; i >= 0; i--) {
-            const rand = Math.floor(Math.random() * (i + 1));
-            [remainingMembers[i], remainingMembers[rand]] = [remainingMembers[rand], remainingMembers[i]];
-        }
-
-        // 各グループに鬼と逃げる人を配置
-        let runnerIndex = 0;
-        for (let i = 0; i < sessionData.teams.length; i++) {
-            // 鬼を設定
-            sessionData.teams[i].oni = selectedOnis[i];
-            
-            // 逃げる人を設定
-            sessionData.teams[i].runners = [];
-            for (let j = 0; j < 4 && runnerIndex < remainingMembers.length; j++) {
-                sessionData.teams[i].runners.push(remainingMembers[runnerIndex]);
-                runnerIndex++;
-            }
-        }
+        // 鬼候補者から削除
+        sessionData.oniCandidates.splice(candidateIndex, 1);
 
         // Embedを更新
         let embed = createEmbed(sessionData);
         await sessionData.msg.edit({ embeds: [embed] });
 
-        let resultMessage = `🎲 ${sessionData.teams.length}グループに鬼を配置しました！\n`;
-        if (candidateCount < requiredOniCount) {
-            resultMessage += `鬼候補者${candidateCount}人 + ランダム${requiredOniCount - candidateCount}人`;
-        } else if (candidateCount === requiredOniCount) {
-            resultMessage += `鬼候補者全員（${candidateCount}人）`;
-        } else {
-            resultMessage += `鬼候補者${candidateCount}人からランダム${requiredOniCount}人選択`;
-        }
-
-        await interaction.reply(resultMessage);
+        await interaction.reply(`${targetMember.toString()}を鬼候補者から削除しました！（現在${sessionData.oniCandidates.length}人）`);
     }
 }
 

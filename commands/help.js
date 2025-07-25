@@ -19,7 +19,10 @@ module.exports = {
                 },
                 {
                     name: '👹 鬼ごっこモード（1vs4複数グループ）',
-                    value: '`/randomoni` - 全グループに鬼をランダム配置'
+                    value: '`/addoni <user>` - 鬼候補者に追加\n' +
+                           '`/removeoni <user>` - 鬼候補者から削除\n' +
+                           '`/clearoni` - 鬼候補者リストをクリア\n' +
+                           '`/randomoni` - 鬼候補者を考慮して鬼を配置'
                 },
                 {
                     name: '⚖️ 均等分割モード',
