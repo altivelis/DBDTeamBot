@@ -32,8 +32,12 @@ client.once(Events.ClientReady, async () => {
     for (const commandName in commands) {
         data.push(commands[commandName].data)
     }
-    await client.application.commands.set(data, guildId);
-    
+    if(guildId) {
+        await client.application.commands.set(data, guildId);
+    }
+    else {
+        await client.application.commands.set(data);
+    }
     console.log("Ready!");
 });
 
