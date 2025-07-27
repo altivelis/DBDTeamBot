@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -39,7 +39,8 @@ module.exports = {
             teams: [],
             oni: null,
             teamSize: 4, // 均等分割用のデフォルトサイズ
-            oniCandidates: [] // 鬼候補者リスト
+            oniCandidates: [], // 鬼候補者リスト
+            creatorId: interaction.user.id // セッション作成者のID
         };
 
         // モードに応じて初期チーム構成を設定
@@ -55,7 +56,8 @@ module.exports = {
         }
 
         let embed = createEmbed(sessionData);
-        sessionData.msg = await interaction.channel.send({ embeds: [embed] });
+        let buttons = createButtons(sessionData);
+        sessionData.msg = await interaction.channel.send({ embeds: [embed], components: buttons });
         interaction.channel.TEAM = sessionData;
 
         const modeText = mode === 'tag' ? '鬼ごっこ' : '均等分割';
@@ -178,6 +180,59 @@ function createEmbed(sessionData) {
     }
 
     return embed;
+}
+
+function createButtons(sessionData) {
+    const buttons = [];
+    
+    // 誰でも使えるボタン（参加者限定）
+    const publicRow = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('candidate_oni')
+                .setLabel('🙋‍♂️ 鬼立候補')
+                .setStyle(ButtonStyle.Primary)
+        );
+    buttons.push(publicRow);
+
+    // 作成者限定ボタン
+    const creatorRow1 = new ActionRowBuilder();
+    
+    if (sessionData.mode === 'tag') {
+        creatorRow1.addComponents(
+            new ButtonBuilder()
+                .setCustomId('switch_to_equal')
+                .setLabel('⚖️ 均等分割モード')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('clear_oni_candidates')
+                .setLabel('🗑️ 鬼候補クリア')
+                .setStyle(ButtonStyle.Danger),
+            new ButtonBuilder()
+                .setCustomId('shuffle_teams')
+                .setLabel('🎲 シャッフル')
+                .setStyle(ButtonStyle.Success)
+        );
+    } else {
+        creatorRow1.addComponents(
+            new ButtonBuilder()
+                .setCustomId('switch_to_tag')
+                .setLabel('🏃‍♂️ 鬼ごっこモード')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('change_team_size')
+                .setLabel('👥 チーム人数変更')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('shuffle_teams')
+                .setLabel('🎲 シャッフル')
+                .setStyle(ButtonStyle.Success)
+        );
+    }
+    
+    buttons.push(creatorRow1);
+
+    return buttons;
 }
 
 function createMembersList(members) {
