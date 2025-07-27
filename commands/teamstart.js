@@ -22,8 +22,8 @@ module.exports = {
             for (let member of vc.members.values()) {
                 // フィルタリング: BOTと観戦者を除外
                 if (member.user.bot) continue;
-                if (member.displayName.startsWith('観戦')) continue;
-                
+                if (member.displayName.startsWith('👀観戦＠')) continue;
+
                 members.push(member);
                 console.log(`add from vc=>${member.displayName}`);
             }

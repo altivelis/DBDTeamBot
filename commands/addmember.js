@@ -24,7 +24,7 @@ module.exports = {
             return;
         }
         
-        if (targetMember.displayName.startsWith('観戦')) {
+        if (targetMember.displayName.startsWith('👀観戦＠')) {
             await interaction.reply({ content: "観戦者は追加できません", ephemeral: true });
             return;
         }
