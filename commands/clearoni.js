@@ -31,7 +31,10 @@ module.exports = {
         let embed = createEmbed(sessionData);
         await sessionData.msg.edit({ embeds: [embed] });
 
-        await interaction.reply(`鬼候補者リストをクリアしました！（${previousCount}人 → 0人）`);
+        const replyMsg = await interaction.reply({ content: `鬼候補者リストをクリアしました！（${previousCount}人 → 0人）` });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }
 

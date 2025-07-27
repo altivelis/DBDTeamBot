@@ -36,7 +36,10 @@ module.exports = {
         let embed = createEmbed(sessionData);
         await sessionData.msg.edit({ embeds: [embed] });
 
-        await interaction.reply(`1チームあたりの人数を${newSize}人に設定しました！\n必要チーム数: ${teamCount}チーム`);
+        const replyMsg = await interaction.reply({ content: `1チームあたりの人数を${newSize}人に設定しました！\n必要チーム数: ${teamCount}チーム` });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }
 

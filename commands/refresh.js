@@ -44,7 +44,10 @@ module.exports = {
         let embed = createEmbed(sessionData);
         await sessionData.msg.edit({ embeds: [embed] });
 
-        await interaction.reply(`VCメンバーを再取得しました！\n${oldCount}人 → ${newMembers.length}人\nチーム分けがリセットされました。`);
+        const replyMsg = await interaction.reply({ content: `VCメンバーを再取得しました！\n${oldCount}人 → ${newMembers.length}人\nチーム分けがリセットされました。` });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }
 

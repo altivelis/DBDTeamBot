@@ -14,6 +14,9 @@ module.exports = {
         interaction.channel.status = 0;
         interaction.channel.TEAM = null;
 
-        await interaction.reply("✅ チーム分けセッションを終了しました");
+        const replyMsg = await interaction.reply({ content: "✅ チーム分けセッションを終了しました" });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }

@@ -108,7 +108,10 @@ module.exports = {
             resultMessage += `鬼候補者${candidateCount}人からランダム${requiredOniCount}人選択`;
         }
 
-        await interaction.reply(resultMessage);
+        const replyMsg = await interaction.reply({ content: resultMessage });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }
 

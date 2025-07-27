@@ -15,7 +15,9 @@ module.exports = {
                     value: '`/teamstart [mode]` - セッション開始\n' +
                            '`/mode <type>` - モード切り替え\n' +
                            '`/teamend` - セッション終了\n' +
-                           '`/refresh` - VCメンバー再取得'
+                           '`/refresh` - VCメンバー再取得\n' +
+                           '`/addmember <user>` - メンバーを手動追加\n' +
+                           '`/removemember <user>` - メンバーを削除'
                 },
                 {
                     name: '👹 鬼ごっこモード（1vs4複数グループ）',
@@ -47,6 +49,9 @@ module.exports = {
             )
             .setFooter({ text: 'Created by: altivelis' });
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        const replyMsg = await interaction.reply({ embeds: [embed], ephemeral: true });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }

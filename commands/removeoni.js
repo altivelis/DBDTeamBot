@@ -43,7 +43,10 @@ module.exports = {
         let embed = createEmbed(sessionData);
         await sessionData.msg.edit({ embeds: [embed] });
 
-        await interaction.reply(`${targetMember.toString()}を鬼候補者から削除しました！（現在${sessionData.oniCandidates.length}人）`);
+        const replyMsg = await interaction.reply({ content: `${targetMember.toString()}を鬼候補者から削除しました！（現在${sessionData.oniCandidates.length}人）` });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }
 

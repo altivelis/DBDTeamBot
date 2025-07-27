@@ -46,7 +46,10 @@ module.exports = {
         await sessionData.msg.edit({ embeds: [embed] });
 
         const modeText = newMode === 'tag' ? '鬼ごっこ' : '均等分割';
-        await interaction.reply(`モードを${modeText}に変更しました！`);
+        const replyMsg = await interaction.reply({ content: `モードを${modeText}に変更しました！` });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }
 

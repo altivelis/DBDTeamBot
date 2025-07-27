@@ -2,11 +2,11 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("addoni")
-        .setDescription("鬼候補者に追加（鬼ごっこモード専用）")
+        .setName("addmember")
+        .setDescription("チーム分けにメンバーを手動追加")
         .addUserOption(option =>
             option.setName('user')
-                .setDescription('鬼候補者に追加するユーザー')
+                .setDescription('追加するユーザー')
                 .setRequired(true)),
     async execute(interaction) {
         if (interaction.channel.status != 1) {
@@ -15,42 +15,59 @@ module.exports = {
         }
 
         let sessionData = interaction.channel.TEAM;
-        
-        if (sessionData.mode !== 'tag') {
-            await interaction.reply({ content: "このコマンドは鬼ごっこモードでのみ使用できます", ephemeral: true });
-            return;
-        }
-
         const targetUser = interaction.options.getUser('user');
         const targetMember = interaction.guild.members.cache.get(targetUser.id);
         
-        // 指定されたユーザーが参加者に含まれているかチェック
+        // BOTユーザーや観戦者は追加できない
+        if (targetUser.bot) {
+            await interaction.reply({ content: "BOTユーザーは追加できません", ephemeral: true });
+            return;
+        }
+        
+        if (targetMember.displayName.startsWith('観戦')) {
+            await interaction.reply({ content: "観戦者は追加できません", ephemeral: true });
+            return;
+        }
+
+        // 既に参加者に含まれているかチェック
         const memberExists = sessionData.members.find(member => member.id === targetUser.id);
-        if (!memberExists) {
-            await interaction.reply({ content: "指定されたユーザーは参加者に含まれていません", ephemeral: true });
+        if (memberExists) {
+            await interaction.reply({ content: "このユーザーは既に参加者に含まれています", ephemeral: true });
             return;
         }
 
-        // 鬼候補者リストが存在しない場合は初期化
-        if (!sessionData.oniCandidates) {
-            sessionData.oniCandidates = [];
-        }
+        // メンバーを追加
+        sessionData.members.push(targetMember);
 
-        // 既に鬼候補者に含まれているかチェック
-        const alreadyCandidate = sessionData.oniCandidates.find(member => member.id === targetUser.id);
-        if (alreadyCandidate) {
-            await interaction.reply({ content: "このユーザーは既に鬼候補者に含まれています", ephemeral: true });
-            return;
+        // モードに応じてチーム構成を再計算
+        if (sessionData.mode === 'tag') {
+            // 1対4の組み合わせを複数作る
+            const groupCount = Math.floor(sessionData.members.length / 5);
+            // 既存のチーム分けを保持しつつ、必要に応じて新しいグループを追加
+            if (groupCount > sessionData.teams.length) {
+                const newGroupCount = groupCount - sessionData.teams.length;
+                for (let i = 0; i < newGroupCount; i++) {
+                    sessionData.teams.push({ oni: null, runners: [] });
+                }
+            }
+            sessionData.groupCount = groupCount;
+        } else if (sessionData.mode === 'equal') {
+            // 均等分割の場合、必要なチーム数を再計算
+            const teamCount = Math.ceil(sessionData.members.length / sessionData.teamSize);
+            // 既存のチーム分けを保持しつつ、必要に応じて新しいチームを追加
+            if (teamCount > sessionData.teams.length) {
+                const newTeamCount = teamCount - sessionData.teams.length;
+                for (let i = 0; i < newTeamCount; i++) {
+                    sessionData.teams.push([]);
+                }
+            }
         }
-
-        // 鬼候補者に追加
-        sessionData.oniCandidates.push(targetMember);
 
         // Embedを更新
         let embed = createEmbed(sessionData);
         await sessionData.msg.edit({ embeds: [embed] });
 
-        const replyMsg = await interaction.reply({ content: `${targetMember.toString()}を鬼候補者に追加しました！（現在${sessionData.oniCandidates.length}人）` });
+        const replyMsg = await interaction.reply({ content: `${targetMember.nickname}をチーム分けに追加しました！（現在${sessionData.members.length}人）` });
         setTimeout(() => {
             interaction.deleteReply();
         }, 5000);

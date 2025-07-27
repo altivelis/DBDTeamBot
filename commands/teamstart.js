@@ -59,7 +59,10 @@ module.exports = {
         interaction.channel.TEAM = sessionData;
 
         const modeText = mode === 'tag' ? '鬼ごっこ' : '均等分割';
-        await interaction.reply(`${modeText}モードでチーム分けセッションを開始しました！\nVCメンバー: ${members.length}人`);
+        const replyMsg = await interaction.reply({ content: `${modeText}モードでチーム分けセッションを開始しました！\nVCメンバー: ${members.length}人` });
+        setTimeout(() => {
+            interaction.deleteReply();
+        }, 5000);
     }
 }
 

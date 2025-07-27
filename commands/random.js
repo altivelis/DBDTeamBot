@@ -38,7 +38,10 @@ module.exports = {
                 }
             }
 
-            await interaction.reply(`🎲 シャッフル完了！${sessionData.teams.length}グループにランダム配置しました！`);
+            const replyMsg = await interaction.reply({ content: `🎲 シャッフル完了！${sessionData.teams.length}グループにランダム配置しました！` });
+            setTimeout(() => {
+                interaction.deleteReply();
+            }, 5000);
 
         } else if (sessionData.mode === 'equal') {
             // 均等分割モード: メンバーをランダムに各チームに配分
@@ -55,7 +58,10 @@ module.exports = {
                 sessionData.teams[teamIndex].push(shuffledMembers[i]);
             }
 
-            await interaction.reply(`🎲 シャッフル完了！${sessionData.teams.length}チームにランダム分割しました！`);
+            const replyMsg = await interaction.reply({ content: `🎲 シャッフル完了！${sessionData.teams.length}チームにランダム分割しました！` });
+            setTimeout(() => {
+                interaction.deleteReply();
+            }, 5000);
         }
 
         // Embedを更新
